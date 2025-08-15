@@ -1,32 +1,354 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>cats arent real 💔</title>
-    <script>
-        const API_KEY = "live_rCRGRpRZbGZMfrftBknOue8JRI2rRI2J26TVhmYKc54D8213lDDJhUUTSUGPO2KR";
-        function displayCat() {
-            fetch(`https://api.thecatapi.com/v1/images/search?api_key=${API_KEY}`)
-                .then(response => response.json())
-                .then(data => {
-                    const catUrl = data[0].url;
-                    const img = document.createElement("img");
-                    img.src = catUrl;
-                    img.alt = "Ct";
-                    img.style.maxWidth = "100%";
-                    img.style.height = "auto";
-                    document.body.appendChild(img);
-                })
-                .catch(error => {
-                    console.error("are you a retard or are you ratelimited", error);
-                    const errorMsg = document.createElement("p");
-                    errorMsg.textContent = "Fail ✌😹";
-                    document.body.appendChild(errorMsg);
-                });
-        }
-        window.onload = displayCat;
-    </script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Nothing Project — Intro</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Quick theme tweaks */
+  --accent:#FFB24D;
+  --text:#E8EFF6;
+  --muted: rgba(232,239,246,0.78);
+  --glass:#ffffff0f;
+  --glass-strong:#ffffff1a;
+  --border:#ffffff2e;
+  --shadow: rgba(0,0,0,.55);
+  --radius:28px;
+  --radius-lg:36px;
+  --card-padding:24px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  color:var(--text);
+  background:#0a1519;
+  line-height:1.5;
+}
+.bg{
+  position:fixed; inset:0; z-index:-2;
+  background:
+    radial-gradient(1200px 800px at 20% 10%, rgba(60,130,160,.25), transparent 65%),
+    radial-gradient(1000px 600px at 90% 90%, rgba(255,180,80,.15), transparent 60%),
+    #0a1519;
+}
+.bg img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  opacity:.55; filter:saturate(.7) contrast(1.1) brightness(.8);
+}
+.overlay{ position:fixed; inset:0; z-index:-1; backdrop-filter: blur(2px); }
+
+.wrap{
+  max-width:1200px;
+  margin: clamp(24px, 4vw, 64px) auto;
+  padding: 0 16px;
+}
+.topbar{
+  display:flex; align-items:center; gap:12px; margin-bottom:24px; opacity:.95;
+}
+.logo{
+  width:28px; height:28px; border-radius:9px;
+  background:linear-gradient(135deg, var(--accent), #ff7f4d);
+  display:grid; place-items:center; color:#111; font-weight:800;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+.brand{font-weight:700; letter-spacing:.2px}
+.note{color:var(--muted); font-size:.95rem}
+
+.cards{
+  display:grid;
+  gap: clamp(16px, 2.2vw, 28px);
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  align-items:stretch;
+}
+.card{
+  position:relative;
+  display:flex; flex-direction:column; justify-content:space-between;
+  background: linear-gradient(180deg, var(--glass-strong), var(--glass));
+  border:1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 20px 60px var(--shadow),
+    inset 0 1px 0 rgba(255,255,255,.15),
+    inset 0 -1px 0 rgba(255,255,255,.06);
+  overflow:hidden;
+  min-height: 620px;
+  padding: var(--card-padding);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.card::before{
+  content:""; position:absolute; inset:0; border-radius: inherit; pointer-events:none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), inset 0 0 40px rgba(255,255,255,.04);
+}
+.card-header{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; opacity:.95;
+}
+.kebab{width:24px; height:24px; border-radius:50%; display:grid; place-items:center; color:#cfe3f2; background:transparent; border:1px solid rgba(255,255,255,.12)}
+.h1{
+  font-size: clamp(28px, 4.6vw, 48px);
+  line-height:1.05; font-weight:800; letter-spacing:.2px; margin:8px 0 12px;
+}
+.p{color:var(--muted)}
+.media{
+  overflow:hidden; border-radius: calc(var(--radius) + 2px);
+  position:relative; margin: 14px 0; border: 1px solid rgba(255,255,255,.16);
+}
+.media img{width:100%; height:240px; object-fit:cover; display:block; filter: contrast(1.05) saturate(.9) brightness(.9)}
+.badge{
+  display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.18); padding:8px 12px; border-radius:999px; font-weight:600;
+}
+.star{color:#ffd26d}
+.row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+.spacer{flex:1}
+.btn{
+  appearance:none; border:0; cursor:pointer; font-weight:700;
+  padding:14px 18px; border-radius:14px;
+  transition: transform .08s ease, box-shadow .2s ease, background .2s ease;
+  white-space:nowrap;
+}
+.btn-primary{
+  background:#fff; color:#0d1b20; box-shadow: 0 10px 24px rgba(0,0,0,.35);
+}
+.btn-primary:hover{ transform: translateY(-1px); }
+.btn-ghost{
+  background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.2)
+}
+.small{font-size:.9rem}
+.caption{font-size:.85rem; color:var(--muted)}
+.divider{height:1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent); margin:8px 0 12px}
+.list{display:grid; gap:12px}
+.item{
+  display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:14px;
+  background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14)
+}
+.item .dot{width:8px; height:8px; border-radius:50%; background: var(--accent); box-shadow:0 0 0 4px rgba(255,177,77,.2)}
+.handle{font-weight:600}
+.price{font-size:1.6rem; font-weight:800}
+.mono{font-variant-numeric: tabular-nums}
+.card .footer{margin-top:auto}
+.credit{margin-top:28px; text-align:center; color:rgba(255,255,255,.55); font-size:.85rem}
+
+@media (max-width: 1024px){
+  .cards{ grid-template-columns: repeat(2, minmax(240px, 1fr)); }
+  .card{ min-height: 560px; }
+}
+@media (max-width: 720px){
+  .wrap{ margin: 20px auto; }
+  .cards{ grid-template-columns: 1fr; }
+  .card{ min-height: 520px; padding:20px }
+  .h1{ font-size: clamp(26px, 8vw, 36px); }
+  .media img{ height:200px }
+}
+@media (prefers-reduced-motion: reduce){
+  * { animation: none !important; transition: none !important }
+}
+</style>
 </head>
 <body>
-    <h1 style="font-family: Arial, sans-serif;">fucking stupid cat fuck you</h1>
+  <!-- Foggy background -->
+  <div class="bg">
+    <img alt="" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1920&auto=format&fit=crop"/>
+  </div>
+  <div class="overlay"></div>
+
+  <div class="wrap">
+    <div class="topbar">
+      <div class="logo">∅</div>
+      <div>
+        <div class="brand">The Nothing Project</div>
+        <div class="note">Glassy, tall cards — desktop and mobile, inspired by your design.</div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <!-- Left card: What I do -->
+      <section class="card">
+        <div>
+          <div class="card-header">
+            <div class="row">
+              <span class="badge"><span class="star">★</span> Featured</span>
+            </div>
+            <div class="kebab">≡</div>
+          </div>
+
+          <div class="h1">What I do</div>
+          <p class="p">Code cool stuff, talk a lot, and absolutely love when people pay attention to me.</p>
+
+          <div class="media">
+            <img alt="" src="https://images.unsplash.com/photo-1491555103944-7c647fd857e6?q=80&w=1200&auto=format&fit=crop"/>
+          </div>
+
+          <div class="list">
+            <div class="item">
+              <div class="dot"></div>
+              <div>
+                <div class="handle">Ship playful experiments</div>
+                <div class="caption">Tiny tools, weird ideas, sometimes useful.</div>
+              </div>
+            </div>
+            <div class="item">
+              <div class="dot"></div>
+              <div>
+                <div class="handle">Talk (a lot)</div>
+                <div class="caption">Streams, rambles, docs — you’ll hear me.</div>
+              </div>
+            </div>
+            <div class="item">
+              <div class="dot"></div>
+              <div>
+                <div class="handle">Attention appreciated</div>
+                <div class="caption">Stars, follows, DMs — fuel for the Nothingness.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer row">
+          <div class="spacer"></div>
+          <a class="btn btn-primary small" id="openRepo" href="#" target="_blank" rel="noopener">Open Repo</a>
+        </div>
+      </section>
+
+      <!-- Center card: Hero -->
+      <section class="card">
+        <div>
+          <div class="card-header">
+            <div class="row" style="gap:8px">
+              <div class="logo" style="width:24px;height:24px;border-radius:8px">∅</div>
+              <strong>Nothing</strong>
+            </div>
+            <div class="kebab">—</div>
+          </div>
+
+          <div class="h1">Nothing, perfectly styled</div>
+          <p class="p">An intro site that does almost nothing… except look good. Built for a GitHub project about, well, nothing.</p>
+
+          <div class="media">
+            <img alt="" src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1600&auto=format&fit=crop"/>
+          </div>
+
+          <div class="row">
+            <span class="badge">
+              <span class="star">★</span>
+              <span class="mono">4.7</span> from <span class="mono">1,800+</span> smiles
+            </span>
+            <span class="spacer"></span>
+            <a class="btn btn-ghost small" id="starRepo" href="#" target="_blank" rel="noopener">Star on GitHub</a>
+          </div>
+        </div>
+
+        <div class="footer row">
+          <div class="spacer"></div>
+          <a class="btn btn-primary" id="cta" href="#" target="_blank" rel="noopener">Take me to Nothing</a>
+        </div>
+      </section>
+
+      <!-- Right card: Contact -->
+      <section class="card">
+        <div>
+          <div class="card-header">
+            <strong>Reserve your attention</strong>
+            <div class="kebab">✎</div>
+          </div>
+
+          <div class="media">
+            <img alt="" src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1200&auto=format&fit=crop"/>
+          </div>
+
+          <div class="h1" style="margin-top:0">Say hi</div>
+          <div class="p">Find me on these:</div>
+
+          <div class="divider"></div>
+
+          <div class="list">
+            <a class="item" id="tg" href="#" target="_blank" rel="noopener">
+              <div class="dot"></div>
+              <div>
+                <div><strong>Telegram</strong></div>
+                <div class="caption">@<span class="handle" id="tgHandle">yourTelegram</span></div>
+              </div>
+            </a>
+
+            <a class="item" id="dc" href="#" target="_blank" rel="noopener">
+              <div class="dot"></div>
+              <div>
+                <div><strong>Discord</strong></div>
+                <div class="caption"><span class="handle" id="dcHandle">yourDiscord</span></div>
+              </div>
+            </a>
+
+            <a class="item" id="rb" href="#" target="_blank" rel="noopener">
+              <div class="dot"></div>
+              <div>
+                <div><strong>Roblox</strong></div>
+                <div class="caption"><span class="handle" id="rbHandle">roblox.com/users/123/profile</span></div>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer row">
+          <div class="price">Free</div>
+          <div class="spacer"></div>
+          <a class="btn btn-primary small" id="sayHi" href="#" target="_blank" rel="noopener">DM me</a>
+        </div>
+      </section>
+    </div>
+
+    <div class="credit">Edit handles and links in the settings object below. Fully responsive. Glass effect falls back gracefully if unsupported.</div>
+  </div>
+
+<script>
+/* ========= Editable settings =========
+   Fill in your stuff and you're done.
+*/
+const SETTINGS = {
+  githubUrl: "https://github.com/your-user/your-repo",
+  telegram: "@yourTelegram",                      // username or full https://t.me/... link
+  discord: "yourDiscordName#0000",                // user tag, server invite, or https://discord.com/users/ID
+  roblox: "https://www.roblox.com/users/123/profile", // full URL or just a username
+  primaryCTA: "Take me to Nothing"                // text for main button
+};
+
+// Helper utilities
+const byId = id => document.getElementById(id);
+function setLink(el, raw, builder){
+  if(!raw) { el.remove(); return; }
+  const text = raw.toString().trim();
+  el.href = (text.startsWith("http://") || text.startsWith("https://")) ? text : builder(text);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // GitHub buttons
+  const gh = SETTINGS.githubUrl || "#";
+  byId("openRepo").href = gh;
+  byId("starRepo").href = gh;
+  byId("cta").href = gh;
+  byId("cta").textContent = SETTINGS.primaryCTA || "Open on GitHub";
+
+  // Telegram
+  const tgHandle = (SETTINGS.telegram || "").replace(/^@/, "");
+  byId("tgHandle").textContent = tgHandle || "yourTelegram";
+  setLink(byId("tg"), SETTINGS.telegram, h => `https://t.me/${h}`);
+
+  // Discord
+  byId("dcHandle").textContent = SETTINGS.discord || "yourDiscord";
+  setLink(byId("dc"), SETTINGS.discord, h => (h.includes("#") || !/^\d+$/.test(h)) ? `https://discord.com/app` : `https://discord.com/users/${h}`);
+
+  // Roblox
+  const rb = SETTINGS.roblox || "";
+  byId("rbHandle").textContent = rb.replace(/^https?:\/\//,"");
+  setLink(byId("rb"), rb, u => `https://www.roblox.com/users/profile?username=${encodeURIComponent(u)}`);
+
+  // DM me button points to Telegram by default (falls back to GitHub)
+  setLink(byId("sayHi"), SETTINGS.telegram || gh, h => `https://t.me/${h.replace(/^@/,"")}`);
+});
+</script>
 </body>
 </html>
