@@ -334,17 +334,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Telegram
   const tgHandle = (SETTINGS.telegram || "").replace(/^@/, "");
-  byId("tgHandle").textContent = tgHandle || "yourTelegram";
+  byId("tgHandle").textContent = tgHandle || "thecurseofRa";
   setLink(byId("tg"), SETTINGS.telegram, h => `https://t.me/${h}`);
 
   // Discord
-  byId("dcHandle").textContent = SETTINGS.discord || "yourDiscord";
+  byId("dcHandle").textContent = SETTINGS.discord || "gazonkers141";
   setLink(byId("dc"), SETTINGS.discord, h => (h.includes("#") || !/^\d+$/.test(h)) ? `https://discord.com/app` : `https://discord.com/users/${h}`);
 
   // Roblox
   const rb = SETTINGS.roblox || "";
   byId("rbHandle").textContent = rb.replace(/^https?:\/\//,"");
-  setLink(byId("rb"), rb, u => `https://www.roblox.com/users/profile?username=${encodeURIComponent(u)}`);
+  setLink(byId("rb"), rb, u => `https://www.roblox.com/users/4054170356/profile`);
 
   // DM me button points to Telegram by default (falls back to GitHub)
   setLink(byId("sayHi"), SETTINGS.telegram || gh, h => `https://t.me/${h.replace(/^@/,"")}`);
@@ -352,3 +352,4 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
