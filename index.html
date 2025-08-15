@@ -1,1 +1,295 @@
-NO.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GH Chat — simple realtime messaging</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg: #0c1116;
+  --panel: #0f1720;
+  --soft: #111a24;
+  --text: #e8f0f7;
+  --muted: #b9c6d2;
+  --accent: #6ee7ff;
+  --accent-2: #8b5cf6;
+  --sent: #1f2b39;
+  --recv: #16202b;
+  --danger:#ff7676;
+  --ok:#9cf6a8;
+  --radius: 16px;
+}
+*{box-sizing:border-box}
+html, body { height: 100%; }
+body{
+  margin:0;
+  font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(900px 600px at 20% -10%, rgba(139,92,246,.15), transparent 60%),
+    radial-gradient(900px 600px at 120% 120%, rgba(110,231,255,.12), transparent 60%),
+    var(--bg);
+}
+.app{
+  height:100%;
+  display:grid;
+  grid-template-rows: auto 1fr auto;
+  max-width: 900px;
+  margin:0 auto;
+}
+.header{
+  display:flex; align-items:center; gap:12px;
+  padding: 14px 16px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background: linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+  position:sticky; top:0; z-index:2;
+}
+.badge{
+  padding:6px 10px; border-radius:999px; font-weight:600; font-size:.85rem;
+  background: rgba(139,92,246,.18); color:#d7c9ff; border:1px solid rgba(139,92,246,.35);
+}
+.room{
+  margin-left:auto; color:var(--muted); font-size:.9rem
+}
+.status{
+  display:flex; align-items:center; gap:6px; font-size:.9rem; color:var(--muted)
+}
+.status i{
+  width:8px; height:8px; border-radius:999px; display:inline-block; background:#aaa
+}
+.status.online i{ background: var(--ok) }
+.status.offline i{ background: var(--danger) }
+
+.messages{
+  padding: 16px;
+  overflow:auto;
+  background:
+    radial-gradient(800px 600px at 50% -20%, rgba(255,255,255,.05), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(255,255,255,.05), transparent 60%);
+}
+.empty{
+  color:var(--muted); text-align:center; margin-top:40px; font-size:.95rem
+}
+.msg{
+  display:grid; gap:6px; margin:10px 0;
+  max-width: min(78ch, 86%);
+}
+.msg .meta{
+  display:flex; align-items:baseline; gap:8px; color:var(--muted); font-size:.8rem
+}
+.msg .bubble{
+  padding:12px 14px; border-radius: 14px;
+  background: var(--recv); border:1px solid rgba(255,255,255,.07);
+  word-wrap: break-word; white-space:pre-wrap;
+}
+.msg.self{ margin-left:auto; text-align:right }
+.msg.self .bubble{ background: var(--sent) }
+.msg .name{ font-weight:700; color:#d8e6f3 }
+.msg .time{ opacity:.9 }
+
+.input{
+  border-top:1px solid rgba(255,255,255,.06);
+  background: linear-gradient(0deg, rgba(255,255,255,.04), transparent);
+  padding: 10px;
+  display:grid; grid-template-columns: 180px 1fr auto; gap:10px;
+}
+.input input, .input button{
+  font: inherit; color: var(--text);
+}
+.input input{
+  background: var(--soft); border:1px solid rgba(255,255,255,.1);
+  padding:12px 14px; border-radius: 12px; outline: none;
+}
+.input input::placeholder{ color: #8ea2b3 }
+.input button{
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border:0; padding:12px 16px; border-radius:12px; font-weight:700; cursor:pointer;
+  box-shadow: 0 10px 24px rgba(0,0,0,.3);
+}
+.toolbar{
+  display:flex; gap:10px; align-items:center;
+}
+.small{ font-size:.85rem; color:var(--muted) }
+.help{ padding: 8px 16px; color: var(--muted); text-align:center }
+a{ color:#8fd6ff; text-decoration:none }
+@media (max-width: 720px){
+  .input{ grid-template-columns: 120px 1fr auto; }
+}
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="badge">GH Chat</div>
+      <div class="status offline" id="status"><i></i><span id="statusText">Offline</span></div>
+      <div class="room" id="roomName"></div>
+    </div>
+
+    <main class="messages" id="messages" aria-live="polite" aria-relevant="additions"></main>
+    <div class="help small">Tip: Pick any username. Create rooms with ?room=anything in the URL.</div>
+
+    <form class="input" id="chatForm" autocomplete="off">
+      <input id="name" placeholder="username" maxlength="24" />
+      <input id="text" placeholder="Type a message…" maxlength="300" />
+      <div class="toolbar">
+        <button type="submit" title="Send (Enter)">Send ⏎</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Realtime logic -->
+  <script type="module">
+    // ==== 1) Firebase imports (no bundler needed) ====
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp,
+      query, orderBy, limit, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // ==== 2) Paste your Firebase config here ====
+    // Get this from Firebase console → Project settings → Your apps → Web app
+    const firebaseConfig = {
+      apiKey: "PASTE_HERE",
+      authDomain: "PASTE_HERE.firebaseapp.com",
+      projectId: "PASTE_HERE",
+      storageBucket: "PASTE_HERE.appspot.com",
+      messagingSenderId: "PASTE_HERE",
+      appId: "PASTE_HERE"
+    };
+
+    // === Basic helpers ===
+    const $ = s => document.querySelector(s);
+    const statusEl = $("#status");
+    const statusText = $("#statusText");
+    const msgsEl = $("#messages");
+    const form = $("#chatForm");
+    const nameInput = $("#name");
+    const textInput = $("#text");
+    const room = new URLSearchParams(location.search).get("room") || "global";
+    $("#roomName").textContent = `Room: ${room}`;
+
+    // Persist username locally
+    nameInput.value = localStorage.getItem("ghchat_name") || "";
+
+    // Generate a local ID + color for your messages
+    const localId = localStorage.getItem("ghchat_id") || crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+    localStorage.setItem("ghchat_id", localId);
+    const color = `hsl(${parseInt(localId,16)%360} 70% 70%)`;
+
+    // Render a message bubble
+    function renderMsg(m){
+      const wrap = document.createElement("div");
+      wrap.className = "msg" + (m.localId === localId ? " self" : "");
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const name = document.createElement("span");
+      name.className = "name";
+      name.style.color = m.color || "#d8e6f3";
+      name.textContent = m.username || "Anon";
+      const time = document.createElement("span");
+      time.className = "time";
+      const ts = m.createdAt?.toDate ? m.createdAt.toDate() : (m.createdAt || new Date());
+      time.textContent = ts.toLocaleString();
+      meta.append(name, time);
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = m.text || "";
+      wrap.append(meta, bubble);
+      return wrap;
+    }
+    function scrollBottom(){
+      msgsEl.scrollTo({ top: msgsEl.scrollHeight, behavior: "smooth" });
+    }
+    function setOnline(isOnline){
+      statusEl.classList.toggle("online", !!isOnline);
+      statusEl.classList.toggle("offline", !isOnline);
+      statusText.textContent = isOnline ? "Online" : "Offline";
+    }
+
+    // Guard: if config not replaced, run in local demo mode
+    const notConfigured = Object.values(firebaseConfig).some(v => String(v).includes("PASTE_HERE"));
+    if (notConfigured){
+      setOnline(false);
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.innerHTML = "Firebase not configured yet. Messages will stay on this device only.<br/>Paste your Firebase config in index.html to go realtime.";
+      msgsEl.append(empty);
+
+      const localMsgs = JSON.parse(localStorage.getItem("ghchat_demo_"+room) || "[]");
+      localMsgs.forEach(m => msgsEl.append(renderMsg(m)));
+      scrollBottom();
+
+      form.addEventListener("submit", (e)=>{
+        e.preventDefault();
+        const text = textInput.value.trim().slice(0,300);
+        const username = (nameInput.value.trim() || "Anon").slice(0,24);
+        if(!text) return;
+        const m = { text, username, createdAt: new Date(), localId, color };
+        msgsEl.append(renderMsg(m));
+        localMsgs.push(m);
+        localStorage.setItem("ghchat_demo_"+room, JSON.stringify(localMsgs.slice(-100)));
+        textInput.value = "";
+        scrollBottom();
+        localStorage.setItem("ghchat_name", username);
+      });
+    } else {
+      // ==== 3) Realtime mode (Firestore) ====
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Query last 100 messages in this room
+      const msgsRef = collection(db, "rooms", room, "messages");
+      const q = query(msgsRef, orderBy("createdAt", "asc"), limit(100));
+
+      // Live subscription
+      onSnapshot(q, (snap) => {
+        // Clear and rerender simple way (100 messages max)
+        msgsEl.innerHTML = "";
+        if (snap.empty){
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "No messages yet. Say hi!";
+          msgsEl.append(empty);
+        } else {
+          snap.forEach(doc => msgsEl.append(renderMsg(doc.data())));
+        }
+        setOnline(true);
+        scrollBottom();
+      }, (err) => {
+        console.error(err);
+        setOnline(false);
+      });
+
+      // Send
+      form.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const text = textInput.value.trim().slice(0,300);
+        const username = (nameInput.value.trim() || "Anon").slice(0,24);
+        if(!text) return;
+        try{
+          await addDoc(msgsRef, {
+            text, username, createdAt: serverTimestamp(), localId, color
+          });
+          textInput.value = "";
+          localStorage.setItem("ghchat_name", username);
+        }catch(err){
+          console.error(err);
+          alert("Failed to send. Check console / Firestore rules.");
+        }
+      });
+    }
+
+    // Enter-to-send convenience for desktop
+    textInput.addEventListener("keydown", (e)=>{
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+  </script>
+</body>
+</html>
